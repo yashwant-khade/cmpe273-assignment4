@@ -9,16 +9,16 @@ class NodeRing:
         self.nodes = nodes
 
     def get_node(self, key):
-        max_hash = None
-        max_node = None
-        for node in self.nodes:
-            encoded_key = (str(node['port']) + key).encode('utf-8')
-            temp_hash = int(hash_code_hex(encoded_key), 16)
-            if max_hash is None or temp_hash > max_hash:
-                max_hash = temp_hash
-                max_node = node
+        maximum_hash_value = None
+        maximum_node = None
+        for n in self.nodes:
+            temp_key = (str(n['port']) + key).encode('utf-8')
+            temporary_hash = int(hash_code_hex(temp_key), 16)
+            if maximum_hash_value is None or temporary_hash > maximum_hash_value:
+                maximum_hash_value = temporary_hash
+                maximum_node = n
 
-        return max_node
+        return maximum_node
 
 
 def test():

@@ -5,46 +5,42 @@ import mmh3
 from pickle_hash import hash_code_hex
 from server_config import NODES
 
-VIRTUAL_LAYERS = 3
-REPLICATION = 3
-
 
 class NodeRing:
 
     def __init__(self, nodes=NODES, hashSize=3600):
         assert len(nodes) > 0
         self.nodes = nodes
-        self.hashSize = hashSize - 1
+        self.hash_size = hashSize - 1
         self.ring = {}
         self.sorted_keys = []
-        self.virtualLayers = VIRTUAL_LAYERS
-        self.replication = REPLICATION
+        self.virtual_nodes = 3
         self.generate_ring()
 
     def generate_ring(self):
 
         for node in self.nodes:
             to_hash = (str(node['port'])).encode('utf-8')
-            for i in range(0, self.virtualLayers):
-                key = mmh3.hash(to_hash, i) % self.hashSize
+            for i in range(0, self.virtual_nodes):
+                key = mmh3.hash(to_hash, i) % self.hash_size
                 while key in self.ring:
                     key += 1
                 self.sorted_keys.append(key)
                 self.ring[key] = node
         self.sorted_keys.sort()
 
-    def get_node(self, key_hash):
-        encoded_hash = key_hash.encode('utf-8')
-        key = int(hash_code_hex(encoded_hash), 16) % self.hashSize
-        pos = bisect.bisect(self.sorted_keys, key)
-        if pos >= len(self.sorted_keys) - 1:
-            pos = 0
-        replication_pos = pos + 1
-        if replication_pos >= len(self.sorted_keys) - 1:
-            replication_pos = 0
-        nodeKey = self.sorted_keys[pos]
-        replicationNodeKey = self.sorted_keys[replication_pos]
-        return self.ring[nodeKey], self.ring[replicationNodeKey]
+    def get_node(self, hash_key):
+        encoded_hash = hash_key.encode('utf-8')
+        key = int(hash_code_hex(encoded_hash), 16) % self.hash_size
+        position = bisect.bisect(self.sorted_keys, key)
+        if position >= len(self.sorted_keys) - 1:
+            position = 0
+        data_rep_position = position + 1
+        if data_rep_position >= len(self.sorted_keys) - 1:
+            data_rep_position = 0
+        node_key = self.sorted_keys[position]
+        rep_node_key = self.sorted_keys[data_rep_position]
+        return self.ring[node_key], self.ring[rep_node_key]
 
 
 def test():
